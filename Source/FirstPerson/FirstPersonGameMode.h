@@ -13,6 +13,13 @@ class AFirstPersonGameMode : public AGameModeBase
 
 public:
 	AFirstPersonGameMode();
+	virtual void BeginPlay() override;
+	void EndGame();
+	virtual void Tick(float DeltaSeconds) override;
+
+private:
+	TArray<AActor*> Cubes;
+	
 };
 
 

@@ -3,9 +3,12 @@
 #include "FirstPersonProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "TargetedCube.h"
 
 AFirstPersonProjectile::AFirstPersonProjectile() 
 {
+	bReplicates = true;
+	bAlwaysRelevant = true;
 	// Use a sphere as a simple collision representation
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
@@ -37,7 +40,10 @@ void AFirstPersonProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAc
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-
+		if (ATargetedCube* HitCube = Cast<ATargetedCube>(OtherActor))
+		{
+			HitCube->HandleHit(Owner);
+		}
 		Destroy();
 	}
 }

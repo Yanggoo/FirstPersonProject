@@ -11,7 +11,7 @@ UTP_PickUpComponent::UTP_PickUpComponent()
 void UTP_PickUpComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	SetIsReplicated(true);
 	// Register our Overlap Event
 	OnComponentBeginOverlap.AddDynamic(this, &UTP_PickUpComponent::OnSphereBeginOverlap);
 }

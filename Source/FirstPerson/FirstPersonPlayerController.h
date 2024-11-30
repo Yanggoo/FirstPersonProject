@@ -26,6 +26,8 @@ protected:
 protected:
 
 	virtual void BeginPlay() override;
-
+public:
+	int32 GetScore()const;
+	void AddScore(int32 Value);
 	// End Actor interface
 };

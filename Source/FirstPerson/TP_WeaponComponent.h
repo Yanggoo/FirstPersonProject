@@ -48,11 +48,14 @@ public:
 	/** Make the weapon Fire a Projectile */
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void Fire();
+	virtual void BeginPlay() override;
 
 protected:
 	/** Ends gameplay for this component. */
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SpawnProjectile(FVector SpawnLocation, FRotator SpawnRotation);
 
 private:
 	/** The Character holding this weapon*/
