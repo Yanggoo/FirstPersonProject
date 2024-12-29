@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "FirstPersonPlayerController.h"
 #include "Animation/AnimInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
@@ -18,11 +19,25 @@ UTP_WeaponComponent::UTP_WeaponComponent()
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
+	MaxLoadedBulletNum = 30;
+	LoadedBulletNum = 30;
+	BulletNum = 150;
 }
 
 
 void UTP_WeaponComponent::Fire()
 {
+	if(LoadedBulletNum==0)
+	{
+		return;
+	}else
+	{
+		LoadedBulletNum--;
+		if(AFirstPersonPlayerController* PC = Cast<AFirstPersonPlayerController>(Character->GetController()))
+		{
+			PC->BulletUpdateDelegate.Broadcast(LoadedBulletNum,BulletNum);
+		}
+	}
 	if (Character == nullptr || Character->GetController() == nullptr)
 	{
 		return;
@@ -83,6 +98,18 @@ void UTP_WeaponComponent::BeginPlay()
 	SetIsReplicated(true);
 }
 
+void UTP_WeaponComponent::Reload()
+{
+	if(BulletNum>MaxLoadedBulletNum-LoadedBulletNum)
+	{
+		BulletNum-=MaxLoadedBulletNum-LoadedBulletNum;
+		LoadedBulletNum = MaxLoadedBulletNum;
+	}else
+	{
+		LoadedBulletNum+=BulletNum;
+		BulletNum = 0;
+	}
+}
 
 bool UTP_WeaponComponent::AttachWeapon(AFirstPersonCharacter* TargetCharacter)
 {
@@ -116,6 +143,11 @@ bool UTP_WeaponComponent::AttachWeapon(AFirstPersonCharacter* TargetCharacter)
 		{
 			// Fire
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
+		}
+
+		if(AFirstPersonPlayerController*PC = Cast<AFirstPersonPlayerController>(PlayerController))
+		{
+			PC->BulletUpdateDelegate.Broadcast(LoadedBulletNum,BulletNum);
 		}
 	}
 

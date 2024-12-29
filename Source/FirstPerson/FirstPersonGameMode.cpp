@@ -76,13 +76,30 @@ void AFirstPersonGameMode::Tick(float DeltaSeconds)
 {
 	if (HasAuthority())
 	{
-		Super::Tick(DeltaSeconds);
 		AFirstPersonGameState* FirstPersonGameState = GetGameState<AFirstPersonGameState>();
-		float CurrentGlobalTime = FirstPersonGameState->GetGlobalTime() + DeltaSeconds;
-		FirstPersonGameState->SetGlobalTime(CurrentGlobalTime);
-		if (CurrentGlobalTime >= FirstPersonGameState->GetGameDuration())
+		if(GetNumPlayers()==FirstPersonGameState->GetPlayerVelocity())
 		{
-			EndGame();
+			Super::Tick(DeltaSeconds);
+			
+			float CurrentGlobalTime = FirstPersonGameState->GetGlobalTime() + DeltaSeconds;
+			if(floor(CurrentGlobalTime)!=floor(FirstPersonGameState->GetGlobalTime()))
+			{
+				FirstPersonGameState->TimeUpdateDelegate.Broadcast(FirstPersonGameState->GetGameDuration() - CurrentGlobalTime);
+			}
+			FirstPersonGameState->SetGlobalTime(CurrentGlobalTime);
+			if (CurrentGlobalTime >= FirstPersonGameState->GetGameDuration())
+			{
+				EndGame();
+			}
 		}
+	}
+}
+
+void AFirstPersonGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	if(AFirstPersonPlayerController* PC=Cast<AFirstPersonPlayerController>(NewPlayer))
+	{
+		PC->SendNewPLayerName();
 	}
 }

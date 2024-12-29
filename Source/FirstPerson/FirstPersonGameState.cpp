@@ -13,6 +13,7 @@ AFirstPersonGameState::AFirstPersonGameState()
 	GameDuration = 60.0f;
 	XPoints = 1;
 	YScale = 0.5;
+	PlayerCapacity = 2;
 }
 
 void AFirstPersonGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

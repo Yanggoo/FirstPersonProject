@@ -1,9 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "FirstPersonProjectile.h"
+
+#include "FirstPersonCharacter.h"
+#include "FirstPersonPlayerController.h"
+#include "FirstPersonPlayerState.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "TargetedCube.h"
+#include "GameFramework/PlayerState.h"
+#include "Interfaces/IHttpResponse.h"
 
 AFirstPersonProjectile::AFirstPersonProjectile() 
 {
@@ -32,17 +38,37 @@ AFirstPersonProjectile::AFirstPersonProjectile()
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+	Damage = 10.0f;
+	
 }
 
 void AFirstPersonProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		
 		if (ATargetedCube* HitCube = Cast<ATargetedCube>(OtherActor))
 		{
-			HitCube->HandleHit(Owner);
+			if(OtherComp->IsSimulatingPhysics())
+			{
+				OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+				HitCube->HandleHit(Owner);
+			}
+		}else if(AFirstPersonCharacter* HitPlayer = Cast<AFirstPersonCharacter>(OtherActor))
+		{
+			if(HasAuthority())
+			{
+				AFirstPersonPlayerState* PlayerState = Cast<AFirstPersonPlayerState>(HitPlayer->GetPlayerState());
+				if(PlayerState)
+				{
+					PlayerState->TakeDamage(Damage);
+				}
+			}
+			if(AFirstPersonPlayerController* PlayerController = Cast<AFirstPersonPlayerController>(Owner))
+			{
+				PlayerController->CrosshairUpdate.Broadcast();
+			}
 		}
 		Destroy();
 	}

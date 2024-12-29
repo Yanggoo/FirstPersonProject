@@ -14,8 +14,6 @@ class FIRSTPERSON_API AFirstPersonGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Game Infos")
-	float GlobalTime;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Game Settings")
 	int32 NumOfImportantCubes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Game Settings")
@@ -24,10 +22,19 @@ protected:
 	int32 XPoints;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Game Settings")
 	float YScale;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Game Settings")
+	uint8 PlayerCapacity;
+	UFUNCTION()
+	void OnRep_Time(float CurrentTime) const{
+		TimeUpdateDelegate.Broadcast(GameDuration-CurrentTime);
+	}
+	UPROPERTY(ReplicatedUsing = OnRep_Time, BlueprintReadWrite, Category = "Game Infos")
+	float GlobalTime;
 public:
 	AFirstPersonGameState();
 	float GetGlobalTime() const {return GlobalTime;}
 	void SetGlobalTime(const float NewGlobalTime){GlobalTime = NewGlobalTime;}
+	uint8 GetPlayerVelocity() const {return PlayerCapacity;}
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	int32 GetNumOfImportantCubes() const
 	{
@@ -49,4 +56,6 @@ public:
 		return YScale;
 	}
 
+	DECLARE_MULTICAST_DELEGATE_OneParam(FTimeUpdate, float);
+	FTimeUpdate TimeUpdateDelegate;
 };

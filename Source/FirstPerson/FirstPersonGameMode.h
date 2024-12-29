@@ -16,6 +16,7 @@ public:
 	virtual void BeginPlay() override;
 	void EndGame();
 	virtual void Tick(float DeltaSeconds) override;
+	void PostLogin(APlayerController* NewPlayer) override;
 
 private:
 	TArray<AActor*> Cubes;

@@ -49,6 +49,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void Fire();
 	virtual void BeginPlay() override;
+	void Reload();
 
 protected:
 	/** Ends gameplay for this component. */
@@ -56,7 +57,12 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SpawnProjectile(FVector SpawnLocation, FRotator SpawnRotation);
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	uint8 MaxLoadedBulletNum;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	uint8 LoadedBulletNum;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	uint8 BulletNum;
 private:
 	/** The Character holding this weapon*/
 	AFirstPersonCharacter* Character;

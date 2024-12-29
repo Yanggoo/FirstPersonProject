@@ -6,7 +6,7 @@
 #include "FirstPersonGameState.h"
 #include "FirstPersonPlayerController.h"
 #include "Net/UnrealNetwork.h"
-
+#include "FirstPersonPlayerState.h"
 
 // Sets default values
 ATargetedCube::ATargetedCube()
@@ -96,6 +96,11 @@ void ATargetedCube::HandleHit(AActor* owner)
 				else
 				{
 					pFirstPersonPlayerController->AddScore(GameState->GetXPoints());
+				}
+
+				if(AFirstPersonPlayerController* PlayerController = Cast<AFirstPersonPlayerController>(owner))
+				{
+					PlayerController->GetPlayerState<AFirstPersonPlayerState>()->PlayerScoreUpdateDelegate.Broadcast();
 				}
 			}
 
