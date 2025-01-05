@@ -11,7 +11,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Interfaces/IHttpResponse.h"
 
-AFirstPersonProjectile::AFirstPersonProjectile() 
+AFirstPersonProjectile::AFirstPersonProjectile()
 {
 	bReplicates = true;
 	bAlwaysRelevant = true;
@@ -19,7 +19,8 @@ AFirstPersonProjectile::AFirstPersonProjectile()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-	CollisionComp->OnComponentHit.AddDynamic(this, &AFirstPersonProjectile::OnHit);		// set up a notification for when this component hits something blocking
+	CollisionComp->OnComponentHit.AddDynamic(this, &AFirstPersonProjectile::OnHit);
+	// set up a notification for when this component hits something blocking
 
 	// Players can't walk on it
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
@@ -38,34 +39,37 @@ AFirstPersonProjectile::AFirstPersonProjectile()
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
-	Damage = 10.0f;
-	
+	Damage = 50.0f;
 }
 
-void AFirstPersonProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AFirstPersonProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+                                   FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
-		
 		if (ATargetedCube* HitCube = Cast<ATargetedCube>(OtherActor))
 		{
-			if(OtherComp->IsSimulatingPhysics())
+			if (OtherComp->IsSimulatingPhysics())
 			{
 				OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 				HitCube->HandleHit(Owner);
 			}
-		}else if(AFirstPersonCharacter* HitPlayer = Cast<AFirstPersonCharacter>(OtherActor))
+		}
+		else if (AFirstPersonCharacter* HitPlayer = Cast<AFirstPersonCharacter>(OtherActor))
 		{
-			if(HasAuthority())
+			if (HasAuthority())
 			{
 				AFirstPersonPlayerState* PlayerState = Cast<AFirstPersonPlayerState>(HitPlayer->GetPlayerState());
-				if(PlayerState)
+				if (PlayerState)
 				{
 					PlayerState->TakeDamage(Damage);
+					PlayerState->LastHitPosition = FVector3f(HitPlayer->GetMesh()
+					                                                  ->GetComponentTransform()
+					                                                  .InverseTransformPosition(Hit.Location));
 				}
 			}
-			if(AFirstPersonPlayerController* PlayerController = Cast<AFirstPersonPlayerController>(Owner))
+			if (AFirstPersonPlayerController* PlayerController = Cast<AFirstPersonPlayerController>(Owner))
 			{
 				PlayerController->CrosshairUpdate.Broadcast();
 			}

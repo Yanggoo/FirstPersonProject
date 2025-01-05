@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "FirstPersonPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -20,22 +21,43 @@ AFirstPersonCharacter::AFirstPersonCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-		
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+}
 
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
-	Mesh1P->bCastDynamicShadow = false;
-	Mesh1P->CastShadow = false;
-	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
-	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+bool AFirstPersonCharacter::IsAlive()
+{
+	if (AFirstPersonPlayerState* PlayerStateOwn = Cast<AFirstPersonPlayerState>(GetPlayerState()))
+	{
+		return PlayerStateOwn->GetHealth() > 0;
+	}
+	else
+	{
+		return true;
+	}
+}
 
+FVector3f AFirstPersonCharacter::GetLastHitLocation()
+{
+	if (AFirstPersonPlayerState* PlayerStateOwn = Cast<AFirstPersonPlayerState>(GetPlayerState()))
+	{
+		return PlayerStateOwn->LastHitPosition;
+	}
+	else
+	{
+		return FVector3f(0, 0, 0);
+	}
+}
+
+void AFirstPersonCharacter::ResetHealth()
+{
+	if (AFirstPersonPlayerState* PlayerStateOwn = Cast<AFirstPersonPlayerState>(GetPlayerState()))
+	{
+		PlayerStateOwn->ResetHealth();
+	}
 }
 
 void AFirstPersonCharacter::BeginPlay()
@@ -47,7 +69,7 @@ void AFirstPersonCharacter::BeginPlay()
 //////////////////////////////////////////////////////////////////////////// Input
 
 void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{	
+{
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -63,7 +85,10 @@ void AFirstPersonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogTemplateCharacter, Error,
+		       TEXT(
+			       "'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."
+		       ), *GetNameSafe(this));
 	}
 }
 
@@ -85,7 +110,6 @@ void AFirstPersonCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
 	if (Controller != nullptr)
 	{
 		// add yaw and pitch input to controller

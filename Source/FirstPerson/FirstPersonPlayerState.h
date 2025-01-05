@@ -36,9 +36,16 @@ public:
 	void TakeDamage(float Damage);
 	float GetHealth() const { return Health; };
 	float GetMaxHealth() const { return MaxHealth; };
+	void ResetHealth()
+	{
+		Health=MaxHealth;
+		OnRep_Health();
+	}
 	
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FHeathUpdate, float, float);
 	DECLARE_MULTICAST_DELEGATE(FScoreUpdate);
 	FScoreUpdate PlayerScoreUpdateDelegate;
 	FHeathUpdate PlayerHealthUpdateDelegate;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector3f LastHitPosition;
 };

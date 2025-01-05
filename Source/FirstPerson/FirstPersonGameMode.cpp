@@ -89,7 +89,7 @@ void AFirstPersonGameMode::Tick(float DeltaSeconds)
 			FirstPersonGameState->SetGlobalTime(CurrentGlobalTime);
 			if (CurrentGlobalTime >= FirstPersonGameState->GetGameDuration())
 			{
-				EndGame();
+				// EndGame();
 			}
 		}
 	}
